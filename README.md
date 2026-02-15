@@ -150,6 +150,20 @@ export const revalidate = 3600; // 秒単位（3600秒 = 1時間）
 - GitHub Actions ワークフローが静的サイトを生成し、GitHub Pages にデプロイします
 - デプロイ完了後、https://shotayoshikawasck.github.io/PCS-Nikkei-Quick-View/ でアクセス可能になります
 
+### NewsAPI.org の API キーを GitHub Secrets に設定
+
+ニュースデータを取得するには、GitHub リポジトリに API キーを設定する必要があります：
+
+1. GitHubリポジトリの **Settings** タブを開く
+2. 左側のメニューから **Secrets and variables** → **Actions** を選択
+3. **New repository secret** ボタンをクリック
+4. 以下の情報を入力：
+   - **Name**: `NEWS_API_KEY`
+   - **Secret**: あなたの NewsAPI.org の API キー
+5. **Add secret** をクリックして保存
+
+設定後、次回のデプロイから実際のニュースデータが表示されます。
+
 ### 手動デプロイ
 
 GitHub のリポジトリページで "Actions" タブから "Deploy to GitHub Pages" ワークフローを手動で実行することもできます。
