@@ -82,9 +82,16 @@ class StorageService {
         return unsubscribe;
       } catch (error) {
         console.error('Error subscribing to likes:', error);
+        // Fallback: call callback with localStorage data
+        const localLikes = this.getLikesFromLocalStorage();
+        callback(localLikes);
       }
+    } else {
+      // For localStorage, provide initial data but no real-time updates
+      const localLikes = this.getLikesFromLocalStorage();
+      callback(localLikes);
     }
-    // No-op for localStorage
+    // No-op unsubscribe function
     return () => {};
   }
 
@@ -138,8 +145,16 @@ class StorageService {
         return unsubscribe;
       } catch (error) {
         console.error('Error subscribing to comments:', error);
+        // Fallback: call callback with localStorage data
+        const localComments = this.getCommentsFromLocalStorage();
+        callback(localComments);
       }
+    } else {
+      // For localStorage, provide initial data but no real-time updates
+      const localComments = this.getCommentsFromLocalStorage();
+      callback(localComments);
     }
+    // No-op unsubscribe function
     return () => {};
   }
 

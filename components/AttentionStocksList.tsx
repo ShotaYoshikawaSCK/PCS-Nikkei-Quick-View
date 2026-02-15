@@ -15,8 +15,8 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
   const [comments, setComments] = useState<Record<string, number>>({});
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
 
-  // Helper function to update comment counts from storage
-  const updateCommentCounts = async () => {
+  // Helper function to load and update comment counts from storage
+  const loadCommentCounts = async () => {
     const allComments = await storageService.getComments();
     const commentCounts: Record<string, number> = {};
     Object.keys(allComments).forEach(code => {
@@ -35,7 +35,7 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
       const storedLikes = await storageService.getLikes();
       setLikes(storedLikes);
       
-      await updateCommentCounts();
+      await loadCommentCounts();
 
       // Subscribe to real-time updates
       unsubscribeLikes = storageService.subscribeLikes((likes) => {
@@ -75,8 +75,10 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
           liked: !current.liked
         }
       };
-      // Save to storage (async, but we don't wait for it)
-      storageService.setLikes(newLikes);
+      // Save to storage asynchronously (fire-and-forget with error handling)
+      storageService.setLikes(newLikes).catch(error => {
+        console.error('Failed to save likes:', error);
+      });
       return newLikes;
     });
   };
@@ -281,7 +283,7 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
           stockName={selectedStockData.name}
           onClose={() => {
             setSelectedStock(null);
-            updateCommentCounts();
+            loadCommentCounts();
           }}
         />
       )}
