@@ -29,7 +29,7 @@ export async function fetchEconomicNews(): Promise<NewsResponse> {
  * 環境変数にAPIキーを設定して使用してください
  */
 export async function fetchEconomicNewsFromAPI(): Promise<NewsResponse> {
-  const apiKey = process.env.NEWS_API_KEY || process.env.NEXT_PUBLIC_NEWS_API_KEY;
+  const apiKey = process.env.NEWS_API_KEY;
   
   if (!apiKey) {
     console.warn("NEWS_API_KEY が設定されていません。環境変数を設定してください。");

@@ -133,8 +133,6 @@ function generateStockReason(stockName: string, changePercent?: number): string 
   if (changePercent === undefined) {
     return "市場動向に注目";
   }
-
-  const absChange = Math.abs(changePercent);
   
   if (changePercent > 3) {
     return "大幅上昇で市場の注目集まる";
