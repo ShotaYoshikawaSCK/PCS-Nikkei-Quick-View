@@ -18,10 +18,10 @@ export default async function Home() {
         {/* ヘッダー */}
         <header className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            PCS 日経クイックビュー
+            TNPクイックビュー
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            昨日の日本経済ニュースと今日の注目銘柄を一目でチェック
+            経済ニュースと今日の注目銘柄を一目でチェック
           </p>
         </header>
 
@@ -42,7 +42,7 @@ export default async function Home() {
         <footer className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>
             このアプリケーションは情報提供を目的としています。
-            実際の投資判断には使用しないでください。
+            実際の投資判断に使用する場合は村上ファンドの許可が必要です。
           </p>
           <p className="mt-2">
             データは定期的に更新されます（約1時間ごと）
