@@ -1,4 +1,8 @@
+"use client";
+
 import { Stock } from "@/lib/types";
+import { useState, useEffect } from "react";
+import CommentSection from "./CommentSection";
 
 interface AttentionStocksListProps {
   stocks: Stock[];
@@ -6,6 +10,47 @@ interface AttentionStocksListProps {
 }
 
 export default function AttentionStocksList({ stocks, updatedAt }: AttentionStocksListProps) {
+  const [likes, setLikes] = useState<Record<string, { count: number; liked: boolean }>>({});
+  const [comments, setComments] = useState<Record<string, number>>({});
+  const [selectedStock, setSelectedStock] = useState<string | null>(null);
+
+  // Load likes and comments from localStorage
+  useEffect(() => {
+    const storedLikes = localStorage.getItem("stockLikes");
+    const storedComments = localStorage.getItem("stockComments");
+    
+    if (storedLikes) {
+      setLikes(JSON.parse(storedLikes));
+    }
+    
+    if (storedComments) {
+      const allComments = JSON.parse(storedComments);
+      const commentCounts: Record<string, number> = {};
+      Object.keys(allComments).forEach(code => {
+        commentCounts[code] = allComments[code].length;
+      });
+      setComments(commentCounts);
+    }
+  }, []);
+
+  const handleLike = (stockCode: string) => {
+    setLikes(prev => {
+      const current = prev[stockCode] || { count: 0, liked: false };
+      const newLikes = {
+        ...prev,
+        [stockCode]: {
+          count: current.liked ? current.count - 1 : current.count + 1,
+          liked: !current.liked
+        }
+      };
+      localStorage.setItem("stockLikes", JSON.stringify(newLikes));
+      return newLikes;
+    });
+  };
+
+  const handleCommentClick = (stockCode: string) => {
+    setSelectedStock(stockCode);
+  };
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString("ja-JP", {
@@ -76,6 +121,12 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
         <table className="w-full">
           <thead>
             <tr className="border-b-2 border-gray-200 dark:border-gray-700">
+              <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                いいね
+              </th>
+              <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                コメント
+              </th>
               <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                 コード
               </th>
@@ -102,6 +153,52 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
                 key={index}
                 className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               >
+                <td className="py-3 px-2 text-center">
+                  <button
+                    onClick={() => handleLike(stock.code)}
+                    className={`inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg transition-all ${
+                      likes[stock.code]?.liked
+                        ? "bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill={likes[stock.code]?.liked ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                    <span className="text-xs font-semibold">{likes[stock.code]?.count || 0}</span>
+                  </button>
+                </td>
+                <td className="py-3 px-2 text-center">
+                  <button
+                    onClick={() => handleCommentClick(stock.code)}
+                    className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                    <span className="text-xs font-semibold">{comments[stock.code] || 0}</span>
+                  </button>
+                </td>
                 <td className="py-3 px-2 text-sm font-mono text-gray-900 dark:text-white">
                   {stock.code}
                 </td>
@@ -143,6 +240,26 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           銘柄データがありません
         </div>
+      )}
+
+      {selectedStock && (
+        <CommentSection
+          stockCode={selectedStock}
+          stockName={stocks.find(s => s.code === selectedStock)?.name || ""}
+          onClose={() => {
+            setSelectedStock(null);
+            // Update comment counts
+            const storedComments = localStorage.getItem("stockComments");
+            if (storedComments) {
+              const allComments = JSON.parse(storedComments);
+              const commentCounts: Record<string, number> = {};
+              Object.keys(allComments).forEach(code => {
+                commentCounts[code] = allComments[code].length;
+              });
+              setComments(commentCounts);
+            }
+          }}
+        />
       )}
 
       <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
