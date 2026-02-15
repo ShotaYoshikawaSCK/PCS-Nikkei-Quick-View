@@ -78,21 +78,21 @@ function parseRSSFeed(xmlText: string): NewsItem[] {
 
     for (const itemXml of itemMatches) {
       // タイトルを抽出
-      const titleMatch = itemXml.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || 
-                        itemXml.match(/<title>(.*?)<\/title>/);
+      const titleMatch = itemXml.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || 
+                        itemXml.match(/<title>([\s\S]*?)<\/title>/);
       const title = titleMatch ? titleMatch[1].trim() : "タイトルなし";
 
       // 説明を抽出
-      const descMatch = itemXml.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) || 
-                       itemXml.match(/<description>(.*?)<\/description>/);
+      const descMatch = itemXml.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) || 
+                       itemXml.match(/<description>([\s\S]*?)<\/description>/);
       const description = descMatch ? descMatch[1].trim() : "説明なし";
 
       // 公開日時を抽出
-      const pubDateMatch = itemXml.match(/<pubDate>(.*?)<\/pubDate>/);
+      const pubDateMatch = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
       const publishedAt = pubDateMatch ? new Date(pubDateMatch[1]).toISOString() : new Date().toISOString();
 
       // URLを抽出
-      const linkMatch = itemXml.match(/<link>(.*?)<\/link>/);
+      const linkMatch = itemXml.match(/<link>([\s\S]*?)<\/link>/);
       const url = linkMatch ? linkMatch[1].trim() : undefined;
 
       items.push({
