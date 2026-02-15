@@ -2,16 +2,15 @@ import { NewsResponse, NewsItem } from "../types";
 
 /**
  * 日本経済ニュースを取得する関数
- * 本番環境では実際のニュースAPIを使用してください
- * 例: NewsAPI.org, Google News RSS, Yahoo!ファイナンスRSSなど
+ * NHK NewsのRSSフィードから経済ニュースを取得します
  */
 export async function fetchEconomicNews(): Promise<NewsResponse> {
   try {
-    // 実際のニュースAPIを使用
-    return await fetchEconomicNewsFromAPI();
+    // RSSフィードから経済ニュースを取得
+    return await fetchEconomicNewsFromRSS();
   } catch (error) {
     console.error("ニュース取得エラー:", error);
-    // APIエラー時はフォールバック用の基本的なメッセージを返す
+    // エラー時はフォールバック用の基本的なメッセージを返す
     return {
       items: [{
         title: "ニュースの取得に失敗しました",
@@ -25,51 +24,88 @@ export async function fetchEconomicNews(): Promise<NewsResponse> {
 }
 
 /**
- * 実際のニュースAPIを使用する実装
- * 環境変数にAPIキーを設定して使用してください
+ * RSSフィードから日本の経済ニュースを取得する実装
+ * NHK NewsのビジネスRSSフィードを使用（公開APIで認証不要）
  */
-export async function fetchEconomicNewsFromAPI(): Promise<NewsResponse> {
-  const apiKey = process.env.NEWS_API_KEY;
-  
-  if (!apiKey) {
-    console.warn("NEWS_API_KEY が設定されていません。環境変数を設定してください。");
-    throw new Error("NEWS_API_KEY が設定されていません");
-  }
-
+export async function fetchEconomicNewsFromRSS(): Promise<NewsResponse> {
   try {
-    // NewsAPI.orgで日本のビジネスニュースを取得
-    const response = await fetch(
-      `https://newsapi.org/v2/top-headlines?country=jp&category=business&pageSize=5&apiKey=${apiKey}`,
-      { next: { revalidate: 3600 } } // 1時間キャッシュ
-    );
+    // NHK News Web のビジネスRSSフィード
+    const rssUrl = "https://www.nhk.or.jp/rss/news/cat6.xml";
+    
+    const response = await fetch(rssUrl, {
+      next: { revalidate: 3600 }, // 1時間キャッシュ
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+      },
+    });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("NewsAPI エラー:", errorData);
-      throw new Error(`ニュースAPIからのデータ取得に失敗しました: ${response.status}`);
+      throw new Error(`RSSフィード取得に失敗しました: ${response.status}`);
     }
 
-    const data = await response.json();
+    const xmlText = await response.text();
     
-    // 記事が取得できない場合
-    if (!data.articles || data.articles.length === 0) {
+    // XMLをパースしてニュース項目を抽出
+    const items = parseRSSFeed(xmlText);
+    
+    if (items.length === 0) {
       throw new Error("ニュース記事が見つかりませんでした");
     }
-    
-    const items: NewsItem[] = data.articles.map((article: any) => ({
-      title: article.title || "タイトルなし",
-      description: article.description || article.content || "説明なし",
-      source: article.source?.name || "不明",
-      publishedAt: article.publishedAt || new Date().toISOString(),
-      url: article.url,
-    }));
 
     return {
-      items,
+      items: items.slice(0, 5), // 最新5件を取得
       updatedAt: new Date().toISOString(),
     };
   } catch (error) {
-    console.error("ニュースAPI取得エラー:", error);
+    console.error("RSS取得エラー:", error);
     throw error;
   }
+}
+
+/**
+ * RSSフィードのXMLをパースしてNewsItem配列に変換
+ */
+function parseRSSFeed(xmlText: string): NewsItem[] {
+  const items: NewsItem[] = [];
+  
+  try {
+    // <item>タグで分割して各記事を抽出
+    const itemMatches = xmlText.match(/<item>[\s\S]*?<\/item>/g);
+    
+    if (!itemMatches) {
+      return items;
+    }
+
+    for (const itemXml of itemMatches) {
+      // タイトルを抽出
+      const titleMatch = itemXml.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || 
+                        itemXml.match(/<title>(.*?)<\/title>/);
+      const title = titleMatch ? titleMatch[1].trim() : "タイトルなし";
+
+      // 説明を抽出
+      const descMatch = itemXml.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) || 
+                       itemXml.match(/<description>(.*?)<\/description>/);
+      const description = descMatch ? descMatch[1].trim() : "説明なし";
+
+      // 公開日時を抽出
+      const pubDateMatch = itemXml.match(/<pubDate>(.*?)<\/pubDate>/);
+      const publishedAt = pubDateMatch ? new Date(pubDateMatch[1]).toISOString() : new Date().toISOString();
+
+      // URLを抽出
+      const linkMatch = itemXml.match(/<link>(.*?)<\/link>/);
+      const url = linkMatch ? linkMatch[1].trim() : undefined;
+
+      items.push({
+        title,
+        description,
+        source: "NHK NEWS WEB",
+        publishedAt,
+        url,
+      });
+    }
+  } catch (error) {
+    console.error("RSSパースエラー:", error);
+  }
+
+  return items;
 }

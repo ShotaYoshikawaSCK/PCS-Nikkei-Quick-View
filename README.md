@@ -56,25 +56,18 @@ npm run dev
 
 ## 🔧 カスタマイズ方法
 
-### ニュースAPIの設定
+### ニュース取得について
 
-アプリケーションは NewsAPI.org から実際の日本のビジネスニュースを取得します。
+アプリケーションは NHK NEWS WEB の公開RSSフィードから実際の日本のビジネスニュースを取得します。
 
-#### セットアップ手順
-
-1. [NewsAPI.org](https://newsapi.org/) でアカウントを作成し、APIキーを取得
-2. プロジェクトルートに `.env.local` ファイルを作成：
-
-```bash
-NEWS_API_KEY=あなたのAPIキー
-```
-
-3. 開発サーバーを再起動
+**特徴**：
+- APIキー不要で無料で使用可能
+- NHK NEWS WEB のビジネスカテゴリーのニュースを自動取得
+- 1時間ごとに最新ニュースを更新（ISR機能）
 
 **注意事項**：
-- 無料プランは1日100リクエスト、24時間遅延の制限があります
-- 商用利用の場合は有料プランが必要です
-- GitHub Pages へのデプロイ時は、GitHub Secrets に `NEWS_API_KEY` を設定してください
+- RSSフィードは公開情報であり、APIキーの設定は不要です
+- ニュースデータは参考情報であり、正確性を保証するものではありません
 
 ### 株価データについて
 
@@ -149,20 +142,6 @@ export const revalidate = 3600; // 秒単位（3600秒 = 1時間）
 - `main` ブランチへのプッシュで自動的にビルド・デプロイが実行されます
 - GitHub Actions ワークフローが静的サイトを生成し、GitHub Pages にデプロイします
 - デプロイ完了後、https://shotayoshikawasck.github.io/PCS-Nikkei-Quick-View/ でアクセス可能になります
-
-### NewsAPI.org の API キーを GitHub Secrets に設定
-
-ニュースデータを取得するには、GitHub リポジトリに API キーを設定する必要があります：
-
-1. GitHubリポジトリの **Settings** タブを開く
-2. 左側のメニューから **Secrets and variables** → **Actions** を選択
-3. **New repository secret** ボタンをクリック
-4. 以下の情報を入力：
-   - **Name**: `NEWS_API_KEY`
-   - **Secret**: あなたの NewsAPI.org の API キー
-5. **Add secret** をクリックして保存
-
-設定後、次回のデプロイから実際のニュースデータが表示されます。
 
 ### 手動デプロイ
 
