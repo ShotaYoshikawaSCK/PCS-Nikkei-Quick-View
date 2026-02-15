@@ -33,7 +33,7 @@ export default function CommentSection({ stockCode, stockName, onClose }: Commen
     if (!newComment.trim()) return;
 
     const comment: Comment = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       stockCode,
       author,
       content: newComment.trim(),

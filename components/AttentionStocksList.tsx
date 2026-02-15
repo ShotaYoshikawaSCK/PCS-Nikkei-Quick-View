@@ -1,7 +1,7 @@
 "use client";
 
 import { Stock } from "@/lib/types";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import CommentSection from "./CommentSection";
 
 interface AttentionStocksListProps {
@@ -14,15 +14,9 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
   const [comments, setComments] = useState<Record<string, number>>({});
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
 
-  // Load likes and comments from localStorage
-  useEffect(() => {
-    const storedLikes = localStorage.getItem("stockLikes");
+  // Helper function to update comment counts from localStorage
+  const updateCommentCounts = () => {
     const storedComments = localStorage.getItem("stockComments");
-    
-    if (storedLikes) {
-      setLikes(JSON.parse(storedLikes));
-    }
-    
     if (storedComments) {
       const allComments = JSON.parse(storedComments);
       const commentCounts: Record<string, number> = {};
@@ -31,7 +25,23 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
       });
       setComments(commentCounts);
     }
+  };
+
+  // Load likes and comments from localStorage
+  useEffect(() => {
+    const storedLikes = localStorage.getItem("stockLikes");
+    
+    if (storedLikes) {
+      setLikes(JSON.parse(storedLikes));
+    }
+    
+    updateCommentCounts();
   }, []);
+
+  // Memoize selected stock to avoid repeated array searches
+  const selectedStockData = useMemo(() => {
+    return selectedStock ? stocks.find(s => s.code === selectedStock) : null;
+  }, [selectedStock, stocks]);
 
   const handleLike = (stockCode: string) => {
     setLikes(prev => {
@@ -242,22 +252,13 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
         </div>
       )}
 
-      {selectedStock && (
+      {selectedStock && selectedStockData && (
         <CommentSection
           stockCode={selectedStock}
-          stockName={stocks.find(s => s.code === selectedStock)?.name || ""}
+          stockName={selectedStockData.name}
           onClose={() => {
             setSelectedStock(null);
-            // Update comment counts
-            const storedComments = localStorage.getItem("stockComments");
-            if (storedComments) {
-              const allComments = JSON.parse(storedComments);
-              const commentCounts: Record<string, number> = {};
-              Object.keys(allComments).forEach(code => {
-                commentCounts[code] = allComments[code].length;
-              });
-              setComments(commentCounts);
-            }
+            updateCommentCounts();
           }}
         />
       )}
