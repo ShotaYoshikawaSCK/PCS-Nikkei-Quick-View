@@ -1,5 +1,5 @@
 import { database } from '../firebase';
-import { ref, set, get, onValue, off } from 'firebase/database';
+import { ref, set, get, onValue } from 'firebase/database';
 import { Comment } from '../types';
 
 // Type definitions
@@ -34,7 +34,7 @@ class StorageService {
    * Get likes from storage
    */
   async getLikes(): Promise<LikesRecord> {
-    if (this.useFirebase) {
+    if (this.useFirebase && database) {
       try {
         const likesRef = ref(database, 'likes');
         const snapshot = await get(likesRef);
@@ -52,7 +52,7 @@ class StorageService {
    * Set likes in storage
    */
   async setLikes(likes: LikesRecord): Promise<void> {
-    if (this.useFirebase) {
+    if (this.useFirebase && database) {
       try {
         const likesRef = ref(database, 'likes');
         await set(likesRef, likes);
@@ -72,14 +72,14 @@ class StorageService {
    * Subscribe to likes changes
    */
   subscribeLikes(callback: (likes: LikesRecord) => void): () => void {
-    if (this.useFirebase) {
+    if (this.useFirebase && database) {
       try {
         const likesRef = ref(database, 'likes');
         const unsubscribe = onValue(likesRef, (snapshot) => {
           const likes = snapshot.val() || {};
           callback(likes);
         });
-        return () => off(likesRef, 'value', unsubscribe);
+        return unsubscribe;
       } catch (error) {
         console.error('Error subscribing to likes:', error);
       }
@@ -92,7 +92,7 @@ class StorageService {
    * Get comments from storage
    */
   async getComments(): Promise<CommentsRecord> {
-    if (this.useFirebase) {
+    if (this.useFirebase && database) {
       try {
         const commentsRef = ref(database, 'comments');
         const snapshot = await get(commentsRef);
@@ -109,7 +109,7 @@ class StorageService {
    * Set comments in storage
    */
   async setComments(comments: CommentsRecord): Promise<void> {
-    if (this.useFirebase) {
+    if (this.useFirebase && database) {
       try {
         const commentsRef = ref(database, 'comments');
         await set(commentsRef, comments);
@@ -128,14 +128,14 @@ class StorageService {
    * Subscribe to comments changes
    */
   subscribeComments(callback: (comments: CommentsRecord) => void): () => void {
-    if (this.useFirebase) {
+    if (this.useFirebase && database) {
       try {
         const commentsRef = ref(database, 'comments');
         const unsubscribe = onValue(commentsRef, (snapshot) => {
           const comments = snapshot.val() || {};
           callback(comments);
         });
-        return () => off(commentsRef, 'value', unsubscribe);
+        return unsubscribe;
       } catch (error) {
         console.error('Error subscribing to comments:', error);
       }
