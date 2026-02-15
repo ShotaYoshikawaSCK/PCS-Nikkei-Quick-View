@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PCS 日経クイックビュー",
-  description: "昨日の日本経済ニュース要約と今日の注目銘柄をチェック",
+  title: "TNPクイックビュー",
+  description: "経済ニュース要約と今日の注目銘柄をチェック",
 };
 
 export default function RootLayout({

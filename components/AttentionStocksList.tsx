@@ -147,7 +147,7 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
 
       <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
         <p className="text-xs text-yellow-800 dark:text-yellow-200">
-          ⚠️ 注意：これはPCS用なので実際の投資判断には使用しないでください。
+          ⚠️ 注意：このアプリケーションは情報提供を目的としています。実際の投資判断に使用する場合は村上ファンドの許可が必要です。
         </p>
       </div>
     </div>
