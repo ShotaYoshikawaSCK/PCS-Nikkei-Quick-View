@@ -65,7 +65,7 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
               d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
             />
           </svg>
-          今日の注目銘柄
+          注目銘柄
         </h2>
         <span className="text-sm text-gray-500 dark:text-gray-400">
           {formatDate(updatedAt)} 更新
