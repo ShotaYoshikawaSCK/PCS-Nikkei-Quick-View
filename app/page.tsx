@@ -41,7 +41,7 @@ export default async function Home() {
         {/* フッター */}
         <footer className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>
-            このアプリケーションはデモンストレーション用です。
+            このアプリケーションは情報提供を目的としています。
             実際の投資判断には使用しないでください。
           </p>
           <p className="mt-2">
