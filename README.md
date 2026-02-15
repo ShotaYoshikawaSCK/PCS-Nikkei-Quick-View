@@ -18,6 +18,7 @@
 - **ダークモード対応** - 自動的にダークモードで表示
 - **実データ統合** - NewsAPI.orgとYahoo Financeから実際のデータを取得
 - **モバイル対応** - スマートフォンでも快適に閲覧可能
+- **複数端末対応** - いいねとコメントを複数端末で共有可能（Firebase使用）
 
 ## 📋 必要要件
 
@@ -40,6 +41,17 @@ npm install
 ```
 
 ### 3. 開発サーバーの起動
+
+Firebase設定（オプション）：
+```bash
+# Firebase を使用する場合は .env.local ファイルを作成
+cp .env.example .env.local
+# .env.local を編集して Firebase の設定値を入力
+```
+
+詳細な Firebase のセットアップ手順は [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) を参照してください。
+
+**注意**: Firebase を設定しない場合でも、アプリケーションは localStorage を使用して動作します（ただし、端末間でデータは共有されません）。
 
 ```bash
 npm run dev

@@ -3,6 +3,7 @@
 import { Stock } from "@/lib/types";
 import { useState, useEffect, useMemo } from "react";
 import CommentSection from "./CommentSection";
+import { storageService } from "@/lib/services/storageService";
 
 interface AttentionStocksListProps {
   stocks: Stock[];
@@ -14,28 +15,49 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
   const [comments, setComments] = useState<Record<string, number>>({});
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
 
-  // Helper function to update comment counts from localStorage
-  const updateCommentCounts = () => {
-    const storedComments = localStorage.getItem("stockComments");
-    if (storedComments) {
-      const allComments = JSON.parse(storedComments);
-      const commentCounts: Record<string, number> = {};
-      Object.keys(allComments).forEach(code => {
-        commentCounts[code] = allComments[code].length;
-      });
-      setComments(commentCounts);
-    }
+  // Helper function to update comment counts from storage
+  const updateCommentCounts = async () => {
+    const allComments = await storageService.getComments();
+    const commentCounts: Record<string, number> = {};
+    Object.keys(allComments).forEach(code => {
+      commentCounts[code] = allComments[code].length;
+    });
+    setComments(commentCounts);
   };
 
-  // Load likes and comments from localStorage
+  // Load likes and comments from storage
   useEffect(() => {
-    const storedLikes = localStorage.getItem("stockLikes");
-    
-    if (storedLikes) {
-      setLikes(JSON.parse(storedLikes));
-    }
-    
-    updateCommentCounts();
+    let unsubscribeLikes: (() => void) | undefined;
+    let unsubscribeComments: (() => void) | undefined;
+
+    const loadData = async () => {
+      // Load initial data
+      const storedLikes = await storageService.getLikes();
+      setLikes(storedLikes);
+      
+      await updateCommentCounts();
+
+      // Subscribe to real-time updates
+      unsubscribeLikes = storageService.subscribeLikes((likes) => {
+        setLikes(likes);
+      });
+
+      unsubscribeComments = storageService.subscribeComments((comments) => {
+        const commentCounts: Record<string, number> = {};
+        Object.keys(comments).forEach(code => {
+          commentCounts[code] = comments[code].length;
+        });
+        setComments(commentCounts);
+      });
+    };
+
+    loadData();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      if (unsubscribeLikes) unsubscribeLikes();
+      if (unsubscribeComments) unsubscribeComments();
+    };
   }, []);
 
   // Memoize selected stock to avoid repeated array searches
@@ -43,7 +65,7 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
     return selectedStock ? stocks.find(s => s.code === selectedStock) : null;
   }, [selectedStock, stocks]);
 
-  const handleLike = (stockCode: string) => {
+  const handleLike = async (stockCode: string) => {
     setLikes(prev => {
       const current = prev[stockCode] || { count: 0, liked: false };
       const newLikes = {
@@ -53,7 +75,8 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
           liked: !current.liked
         }
       };
-      localStorage.setItem("stockLikes", JSON.stringify(newLikes));
+      // Save to storage (async, but we don't wait for it)
+      storageService.setLikes(newLikes);
       return newLikes;
     });
   };

@@ -2,6 +2,7 @@
 
 import { Comment } from "@/lib/types";
 import { useState, useEffect } from "react";
+import { storageService } from "@/lib/services/storageService";
 
 interface CommentSectionProps {
   stockCode: string;
@@ -15,19 +16,31 @@ export default function CommentSection({ stockCode, stockName, onClose }: Commen
   const [author, setAuthor] = useState("");
 
   useEffect(() => {
-    // Load comments from localStorage
-    const storedComments = localStorage.getItem("stockComments");
-    if (storedComments) {
-      const allComments = JSON.parse(storedComments);
-      setComments(allComments[stockCode] || []);
-    }
+    let unsubscribe: (() => void) | undefined;
 
-    // Load author name from localStorage or set default
-    const storedAuthor = localStorage.getItem("userName");
-    setAuthor(storedAuthor || "匿名ユーザー");
+    const loadData = async () => {
+      // Load comments from storage
+      const allComments = await storageService.getComments();
+      setComments(allComments[stockCode] || []);
+
+      // Load author name from storage
+      const storedAuthor = storageService.getUserName();
+      setAuthor(storedAuthor);
+
+      // Subscribe to real-time updates for this stock's comments
+      unsubscribe = storageService.subscribeComments((allComments) => {
+        setComments(allComments[stockCode] || []);
+      });
+    };
+
+    loadData();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [stockCode]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newComment.trim()) return;
@@ -40,16 +53,19 @@ export default function CommentSection({ stockCode, stockName, onClose }: Commen
       timestamp: new Date().toISOString(),
     };
 
-    const storedComments = localStorage.getItem("stockComments");
-    const allComments = storedComments ? JSON.parse(storedComments) : {};
+    // Get current comments and add the new one
+    const allComments = await storageService.getComments();
     
     if (!allComments[stockCode]) {
       allComments[stockCode] = [];
     }
     
     allComments[stockCode].push(comment);
-    localStorage.setItem("stockComments", JSON.stringify(allComments));
     
+    // Save to storage
+    await storageService.setComments(allComments);
+    
+    // Update local state
     setComments([...comments, comment]);
     setNewComment("");
   };
@@ -128,7 +144,7 @@ export default function CommentSection({ stockCode, stockName, onClose }: Commen
                 value={author}
                 onChange={(e) => {
                   setAuthor(e.target.value);
-                  localStorage.setItem("userName", e.target.value);
+                  storageService.setUserName(e.target.value);
                 }}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="名前を入力"
