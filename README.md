@@ -2,6 +2,14 @@
 
 日本の個人投資家向けに「昨日（前営業日）の日本経済トピックス要約」と「今日注目されている銘柄リスト」を1画面で表示するシンプルでモダンなWebアプリケーションです。
 
+## 🌐 オンラインアクセス
+
+このアプリケーションは GitHub Pages でホストされており、以下の URL からアクセスできます：
+
+**https://shotayoshikawasck.github.io/PCS-Nikkei-Quick-View/**
+
+スマートフォンやパソコンのブラウザから直接アクセスして、情報を閲覧できます。
+
 ## 🌟 特徴
 
 - **Next.js 14+ (App Router)** - 最新のReact Server Componentsを活用
@@ -132,6 +140,20 @@ PCS-Nikkei-Quick-View/
 ```typescript
 export const revalidate = 3600; // 秒単位（3600秒 = 1時間）
 ```
+
+## 🚀 デプロイ
+
+このアプリケーションは GitHub Pages に自動デプロイされます。
+
+### 自動デプロイ
+
+- `main` ブランチへのプッシュで自動的にビルド・デプロイが実行されます
+- GitHub Actions ワークフローが静的サイトを生成し、GitHub Pages にデプロイします
+- デプロイ完了後、https://shotayoshikawasck.github.io/PCS-Nikkei-Quick-View/ でアクセス可能になります
+
+### 手動デプロイ
+
+GitHub のリポジトリページで "Actions" タブから "Deploy to GitHub Pages" ワークフローを手動で実行することもできます。
 
 ## ⚠️ 免責事項
 
