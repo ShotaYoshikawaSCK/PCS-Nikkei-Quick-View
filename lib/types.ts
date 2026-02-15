@@ -28,12 +28,3 @@ export interface StocksResponse {
   items: Stock[];
   updatedAt: string;
 }
-
-// コメントの型定義
-export interface Comment {
-  id: string;
-  stockCode: string; // 銘柄コード
-  author: string; // コメント投稿者
-  content: string; // コメント内容
-  timestamp: string; // 投稿日時
-}
