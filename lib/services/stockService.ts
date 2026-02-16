@@ -75,33 +75,63 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
         const meta = quote.meta;
         const prices = quote.indicators.quote[0];
         
-        // 最新の終値を取得（配列の最後の非null値）
-        const closePrices = prices.close?.filter((p: number | null): p is number => p != null) || [];
-        const latestClose = closePrices.length > 0 ? closePrices[closePrices.length - 1] : undefined;
-        
-        // 現在価格: regularMarketPrice（市場営業中）または最新の終値
-        const currentPrice = meta.regularMarketPrice || latestClose;
-        // 前日終値: metaのpreviousClose
-        const previousClose = meta.previousClose || meta.chartPreviousClose;
-        
-        // 前日比を計算
-        const change = currentPrice && previousClose ? currentPrice - previousClose : undefined;
-        const changePercent = change && previousClose ? (change / previousClose) * 100 : undefined;
+          // 日本時間で前営業日の終値を正しく取得
+          const timestamps: number[] = quote.timestamp || [];
+          const closePrices: number[] = prices.close?.filter((p: number | null): p is number => p != null) || [];
 
-        // 出来高の取得（最新の値）
-        const volumes = prices.volume?.filter((v: number | null): v is number => v != null) || [];
-        const latestVolume = volumes.length > 0 ? volumes[volumes.length - 1] : undefined;
+          let latestClose: number | undefined = undefined;
+          let previousClose: number | undefined = undefined;
 
-        return {
-          code: stock.code,
-          name: stock.name,
-          price: currentPrice ? Math.round(currentPrice) : undefined,
-          previousClose: previousClose ? Math.round(previousClose) : undefined,
-          change: change ? Math.round(change) : undefined,
-          changePercent: changePercent ? Number(changePercent.toFixed(2)) : undefined,
-          volume: latestVolume,
-          reason: generateStockReason(stock.name, changePercent),
-        };
+          if (timestamps.length === closePrices.length && closePrices.length >= 2) {
+            // timestampはUTCなので日本時間に変換
+            const dateClosePairs = timestamps.map((ts, i) => ({
+              // 日本時間（UTC+9）の日付（時刻は0:00固定）
+              date: new Date((ts + 9 * 60 * 60) * 1000),
+              close: closePrices[i],
+            }));
+            // 今日の日本時間の日付
+            const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
+            todayJST.setHours(0, 0, 0, 0);
+
+            // 最新営業日（今日または直近の過去日）とその前営業日を特定
+            // 未来日を除外し、降順（新しい順）で並べる
+            const validPairs = dateClosePairs.filter(pair => pair.date <= todayJST)
+              .sort((a, b) => b.date.getTime() - a.date.getTime());
+
+            if (validPairs.length >= 2) {
+              latestClose = validPairs[0].close;
+              previousClose = validPairs[1].close;
+            } else if (validPairs.length === 1) {
+              latestClose = validPairs[0].close;
+              previousClose = undefined;
+            }
+          } else {
+            // フォールバック
+            latestClose = closePrices.length > 0 ? closePrices[closePrices.length - 1] : undefined;
+            previousClose = closePrices.length > 1 ? closePrices[closePrices.length - 2] : undefined;
+          }
+
+          // 現在価格: regularMarketPrice（市場営業中）または最新の終値
+          const currentPrice = meta.regularMarketPrice || latestClose;
+
+          // 前日比を計算
+          const change = currentPrice && previousClose ? currentPrice - previousClose : undefined;
+          const changePercent = change && previousClose ? (change / previousClose) * 100 : undefined;
+
+          // 出来高の取得（最新の値）
+          const volumes = prices.volume?.filter((v: number | null): v is number => v != null) || [];
+          const latestVolume = volumes.length > 0 ? volumes[volumes.length - 1] : undefined;
+
+          return {
+            code: stock.code,
+            name: stock.name,
+            price: currentPrice ? Math.round(currentPrice) : undefined,
+            previousClose: previousClose ? Math.round(previousClose) : undefined,
+            change: change ? Math.round(change) : undefined,
+            changePercent: changePercent ? Number(changePercent.toFixed(2)) : undefined,
+            volume: latestVolume,
+            reason: generateStockReason(stock.name, changePercent),
+          };
       } catch (error) {
         console.error(`${stock.name} のデータ取得エラー:`, error);
         return null;
