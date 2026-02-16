@@ -1,16 +1,7 @@
 import NewsSummaryCard from "@/components/NewsSummaryCard";
 import AttentionStocksList from "@/components/AttentionStocksList";
-import { fetchEconomicNews } from "@/lib/services/newsService";
-import { fetchAttentionStocks } from "@/lib/services/stockService";
 
-export const revalidate = 900; // 15分ごとに再検証
-
-export default async function Home() {
-  // データを並列で取得
-  const [newsData, stocksData] = await Promise.all([
-    fetchEconomicNews(),
-    fetchAttentionStocks(),
-  ]);
+export default function Home() {
 
   return (
     <main className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
@@ -29,12 +20,12 @@ export default async function Home() {
         <div className="space-y-8">
           {/* ニュースセクション */}
           <section>
-            <NewsSummaryCard news={newsData.items} updatedAt={newsData.updatedAt} />
+            <NewsSummaryCard />
           </section>
 
           {/* 注目銘柄セクション */}
           <section>
-            <AttentionStocksList stocks={stocksData.items} updatedAt={stocksData.updatedAt} />
+            <AttentionStocksList />
           </section>
         </div>
 

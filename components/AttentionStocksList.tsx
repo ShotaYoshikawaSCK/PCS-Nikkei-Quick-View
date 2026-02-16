@@ -1,11 +1,66 @@
+'use client';
+
+import { useEffect, useState } from "react";
 import { Stock } from "@/lib/types";
+import { fetchAttentionStocks } from "@/lib/services/stockService";
 
-interface AttentionStocksListProps {
-  stocks: Stock[];
-  updatedAt: string;
-}
+export default function AttentionStocksList() {
+  const [stocks, setStocks] = useState<Stock[]>([]);
+  const [updatedAt, setUpdatedAt] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default function AttentionStocksList({ stocks, updatedAt }: AttentionStocksListProps) {
+  useEffect(() => {
+    let isMounted = true;
+    
+    async function loadStocks() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await fetchAttentionStocks();
+        if (isMounted) {
+          setStocks(data.items);
+          setUpdatedAt(data.updatedAt);
+        }
+      } catch (err) {
+        console.error("株価取得エラー:", err);
+        if (isMounted) {
+          setError("株価データの取得に失敗しました");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+    
+    loadStocks();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+          <span className="ml-2 text-gray-600 dark:text-gray-400">株価データを読み込み中...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div className="text-center py-8 text-red-600 dark:text-red-400">
+          {error}
+        </div>
+      </div>
+    );
+  }
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString("ja-JP", {
