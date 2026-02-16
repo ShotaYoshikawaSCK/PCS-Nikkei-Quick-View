@@ -83,20 +83,22 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
           let previousClose: number | undefined = undefined;
 
           if (timestamps.length === closePrices.length && closePrices.length >= 2) {
-            // timestampはUTCなので日本時間に変換
-            const dateClosePairs = timestamps.map((ts, i) => ({
-              // 日本時間（UTC+9）の日付（時刻は0:00固定）
-              date: new Date((ts + 9 * 60 * 60) * 1000),
-              close: closePrices[i],
-            }));
-            // 今日の日本時間の日付
-            const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
-            todayJST.setHours(0, 0, 0, 0);
+            // JST変換し、年月日単位で比較
+            const dateClosePairs = timestamps.map((ts, i) => {
+              const jst = new Date((ts + 9 * 60 * 60) * 1000);
+              // 年月日文字列（例: 2026-2-13）
+              const ymd = `${jst.getFullYear()}-${jst.getMonth() + 1}-${jst.getDate()}`;
+              return { ymd, close: closePrices[i], rawDate: jst };
+            });
 
-            // 最新営業日（今日または直近の過去日）とその前営業日を特定
-            // 未来日を除外し、降順（新しい順）で並べる
-            const validPairs = dateClosePairs.filter(pair => pair.date <= todayJST)
-              .sort((a, b) => b.date.getTime() - a.date.getTime());
+            // 今日のJST年月日
+            const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
+            const todayYMD = `${nowJST.getFullYear()}-${nowJST.getMonth() + 1}-${nowJST.getDate()}`;
+
+            // 今日より前の営業日だけに絞る
+            const validPairs = dateClosePairs
+              .filter(pair => pair.ymd < todayYMD)
+              .sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
 
             if (validPairs.length >= 2) {
               latestClose = validPairs[0].close;
