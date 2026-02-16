@@ -1,11 +1,54 @@
+'use client';
+
+import { useEffect, useState } from "react";
 import { NewsItem } from "@/lib/types";
+import { fetchEconomicNews } from "@/lib/services/newsService";
 
-interface NewsSummaryCardProps {
-  news: NewsItem[];
-  updatedAt: string;
-}
+export default function NewsSummaryCard() {
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [updatedAt, setUpdatedAt] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default function NewsSummaryCard({ news, updatedAt }: NewsSummaryCardProps) {
+  useEffect(() => {
+    async function loadNews() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await fetchEconomicNews();
+        setNews(data.items);
+        setUpdatedAt(data.updatedAt);
+      } catch (err) {
+        console.error("ニュース取得エラー:", err);
+        setError("ニュースの取得に失敗しました");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    loadNews();
+  }, []);
+  
+  if (isLoading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-gray-600 dark:text-gray-400">ニュースを読み込み中...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div className="text-center py-8 text-red-600 dark:text-red-400">
+          {error}
+        </div>
+      </div>
+    );
+  }
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString("ja-JP", {
