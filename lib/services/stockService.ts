@@ -96,6 +96,7 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
           code: stock.code,
           name: stock.name,
           price: currentPrice ? Math.round(currentPrice) : undefined,
+          previousClose: previousClose ? Math.round(previousClose) : undefined,
           change: change ? Math.round(change) : undefined,
           changePercent: changePercent ? Number(changePercent.toFixed(2)) : undefined,
           volume: latestVolume,

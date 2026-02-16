@@ -87,6 +87,9 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
                 株価
               </th>
               <th className="text-right py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                前日終値
+              </th>
+              <th className="text-right py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                 前日比
               </th>
               <th className="text-right py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -111,6 +114,9 @@ export default function AttentionStocksList({ stocks, updatedAt }: AttentionStoc
                 </td>
                 <td className="py-3 px-2 text-sm text-right font-semibold text-gray-900 dark:text-white">
                   {stock.price ? `¥${formatNumber(stock.price)}` : "-"}
+                </td>
+                <td className="py-3 px-2 text-sm text-right text-gray-600 dark:text-gray-400">
+                  {stock.previousClose ? `¥${formatNumber(stock.previousClose)}` : "-"}
                 </td>
                 <td className="py-3 px-2 text-right">
                   {stock.change !== undefined && stock.changePercent !== undefined ? (
