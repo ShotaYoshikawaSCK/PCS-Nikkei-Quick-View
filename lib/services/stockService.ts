@@ -76,7 +76,7 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
         const prices = quote.indicators.quote[0];
         
         // 最新の終値を取得（配列の最後の非null値）
-        const closePrices = prices.close?.filter((p: number) => p != null) || [];
+        const closePrices = prices.close?.filter((p: number | null): p is number => p != null) || [];
         const latestClose = closePrices.length > 0 ? closePrices[closePrices.length - 1] : undefined;
         
         // 現在価格: regularMarketPrice（市場営業中）または最新の終値
@@ -89,7 +89,7 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
         const changePercent = change && previousClose ? (change / previousClose) * 100 : undefined;
 
         // 出来高の取得（最新の値）
-        const volumes = prices.volume?.filter((v: number) => v != null) || [];
+        const volumes = prices.volume?.filter((v: number | null): v is number => v != null) || [];
         const latestVolume = volumes.length > 0 ? volumes[volumes.length - 1] : undefined;
 
         return {
