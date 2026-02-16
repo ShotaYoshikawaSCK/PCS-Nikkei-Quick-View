@@ -54,7 +54,7 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
         const url = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.code}.T?interval=1d&range=5d`;
         
         const response = await fetch(url, {
-          next: { revalidate: 3600 }, // 1時間キャッシュ
+          cache: 'no-store',
           headers: {
             'User-Agent': 'Mozilla/5.0',
           },
