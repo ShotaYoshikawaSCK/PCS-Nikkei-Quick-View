@@ -44,9 +44,6 @@ export default async function Home() {
             このアプリケーションは情報提供を目的としています。
             実際の投資判断に使用する場合は村上ファンドの許可が必要です。
           </p>
-          <p className="mt-2">
-            データは定期的に更新されます（約1時間ごと）
-          </p>
         </footer>
       </div>
     </main>

@@ -30,7 +30,7 @@ export async function fetchEconomicNews(): Promise<NewsResponse> {
 export async function fetchEconomicNewsFromRSS(): Promise<NewsResponse> {
   try {
     // NHK News Web のビジネスRSSフィード
-    const rssUrl = "https://www.nhk.or.jp/rss/news/cat6.xml";
+    const rssUrl = "https://www3.nhk.or.jp/rss/news/cat6.xml";
     
     const response = await fetch(rssUrl, {
       next: { revalidate: 3600 }, // 1時間キャッシュ
