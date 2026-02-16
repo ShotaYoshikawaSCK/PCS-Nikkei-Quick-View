@@ -63,7 +63,7 @@ npm run dev
 **特徴**：
 - APIキー不要で無料で使用可能
 - NHK NEWS WEB のビジネスカテゴリーのニュースを自動取得
-- 1時間ごとに最新ニュースを更新（ISR機能）
+- 15分ごとに最新ニュースを更新（ISR機能）
 
 **注意事項**：
 - RSSフィードは公開情報であり、APIキーの設定は不要です
@@ -126,11 +126,11 @@ PCS-Nikkei-Quick-View/
 
 ## 🔄 データ更新頻度
 
-- デフォルトでは1時間ごとにデータを再検証（ISR: Incremental Static Regeneration）
+- デフォルトでは15分ごとにデータを再検証（ISR: Incremental Static Regeneration）
 - `app/page.tsx` の `revalidate` 設定で変更可能
 
 ```typescript
-export const revalidate = 3600; // 秒単位（3600秒 = 1時間）
+export const revalidate = 900; // 秒単位（900秒 = 15分）
 ```
 
 ## 🚀 デプロイ
