@@ -3,7 +3,7 @@ import AttentionStocksList from "@/components/AttentionStocksList";
 import { fetchEconomicNews } from "@/lib/services/newsService";
 import { fetchAttentionStocks } from "@/lib/services/stockService";
 
-export const revalidate = 0; // キャッシュしない
+export const revalidate = 900; // 15分ごとに再検証
 
 export default async function Home() {
   // データを並列で取得
