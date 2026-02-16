@@ -11,22 +11,34 @@ export default function NewsSummaryCard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     async function loadNews() {
       try {
         setIsLoading(true);
         setError(null);
         const data = await fetchEconomicNews();
-        setNews(data.items);
-        setUpdatedAt(data.updatedAt);
+        if (isMounted) {
+          setNews(data.items);
+          setUpdatedAt(data.updatedAt);
+        }
       } catch (err) {
         console.error("ニュース取得エラー:", err);
-        setError("ニュースの取得に失敗しました");
+        if (isMounted) {
+          setError("ニュースの取得に失敗しました");
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
     
     loadNews();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
   
   if (isLoading) {

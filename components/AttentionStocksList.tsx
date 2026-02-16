@@ -11,22 +11,34 @@ export default function AttentionStocksList() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     async function loadStocks() {
       try {
         setIsLoading(true);
         setError(null);
         const data = await fetchAttentionStocks();
-        setStocks(data.items);
-        setUpdatedAt(data.updatedAt);
+        if (isMounted) {
+          setStocks(data.items);
+          setUpdatedAt(data.updatedAt);
+        }
       } catch (err) {
         console.error("株価取得エラー:", err);
-        setError("株価データの取得に失敗しました");
+        if (isMounted) {
+          setError("株価データの取得に失敗しました");
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
     
     loadStocks();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (isLoading) {
