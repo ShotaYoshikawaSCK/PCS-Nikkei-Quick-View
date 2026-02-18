@@ -51,13 +51,12 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
     const stockDataPromises = majorStocks.map(async (stock) => {
       try {
         // Yahoo Finance Japan の株価APIエンドポイント
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.code}.T?interval=1d&range=5d`;
+        const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.code}.T?interval=1d&range=5d`;
+        // CORSプロキシを使用してブラウザからのアクセスを可能にする
+        const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
         
         const response = await fetch(url, {
           cache: 'no-store', // キャッシュを無効化して常に最新データを取得
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-          },
         });
 
         if (!response.ok) {
