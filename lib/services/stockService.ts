@@ -25,6 +25,7 @@ export async function fetchAttentionStocks(): Promise<StocksResponse> {
 /**
  * Yahoo! Finance Japan から注目銘柄データを取得
  * 日経平均の主要構成銘柄を取得して表示
+ * Note: ブラウザからのCORS制限回避のため、CORSプロキシ (allorigins.win) を使用
  */
 export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
   // 日経225の主要銘柄リスト（出来高や時価総額が大きい代表的な銘柄）
