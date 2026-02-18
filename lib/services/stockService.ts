@@ -1,5 +1,9 @@
 import { StocksResponse, Stock } from "../types";
 
+// CORSプロキシの設定
+const CORS_PROXY_URL = "https://api.allorigins.win/raw?url=";
+const FETCH_TIMEOUT_MS = 10000; // 10秒
+
 /**
  * 今日の注目銘柄を取得する関数
  * Yahoo! Financeなどから実際のデータを取得
@@ -57,11 +61,11 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
         // CORSプロキシを使用してブラウザからのアクセスを可能にする
         // Note: 静的サイト(GitHub Pages)のためCORSプロキシが必要
         // 本番環境ではサーバーサイドプロキシの使用を推奨
-        const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
+        const url = `${CORS_PROXY_URL}${encodeURIComponent(yahooUrl)}`;
         
-        // タイムアウト設定（10秒）
+        // タイムアウト設定
         const controller = new AbortController();
-        timeoutId = setTimeout(() => controller.abort(), 10000);
+        timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
         
         const response = await fetch(url, {
           cache: 'no-store', // キャッシュを無効化して常に最新データを取得
