@@ -50,6 +50,7 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
   try {
     // Yahoo Finance から複数銘柄のデータを並列取得
     const stockDataPromises = majorStocks.map(async (stock) => {
+      let timeoutId: NodeJS.Timeout | undefined;
       try {
         // Yahoo Finance Japan の株価APIエンドポイント
         const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.code}.T?interval=1d&range=5d`;
@@ -60,14 +61,12 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
         
         // タイムアウト設定（10秒）
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        timeoutId = setTimeout(() => controller.abort(), 10000);
         
         const response = await fetch(url, {
           cache: 'no-store', // キャッシュを無効化して常に最新データを取得
           signal: controller.signal,
         });
-        
-        clearTimeout(timeoutId);
 
         if (!response.ok) {
           console.warn(`${stock.name} (${stock.code}) のデータ取得に失敗`);
@@ -146,6 +145,11 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
       } catch (error) {
         console.error(`${stock.name} のデータ取得エラー:`, error);
         return null;
+      } finally {
+        // タイムアウトのクリーンアップ（メモリリーク防止）
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
       }
     });
 
