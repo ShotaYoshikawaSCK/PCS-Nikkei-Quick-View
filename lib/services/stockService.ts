@@ -1,5 +1,9 @@
 import { StocksResponse, Stock } from "../types";
 
+// CORSプロキシの設定
+const CORS_PROXY_URL = "https://api.allorigins.win/raw?url=";
+const FETCH_TIMEOUT_MS = 10000; // 10秒
+
 /**
  * 今日の注目銘柄を取得する関数
  * Yahoo! Financeなどから実際のデータを取得
@@ -25,6 +29,7 @@ export async function fetchAttentionStocks(): Promise<StocksResponse> {
 /**
  * Yahoo! Finance Japan から注目銘柄データを取得
  * 日経平均の主要構成銘柄を取得して表示
+ * Note: ブラウザからのCORS制限回避のため、CORSプロキシ (allorigins.win) を使用
  */
 export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
   // 日経225の主要銘柄リスト（出来高や時価総額が大きい代表的な銘柄）
@@ -49,15 +54,22 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
   try {
     // Yahoo Finance から複数銘柄のデータを並列取得
     const stockDataPromises = majorStocks.map(async (stock) => {
+      let timeoutId: NodeJS.Timeout | undefined;
       try {
         // Yahoo Finance Japan の株価APIエンドポイント
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.code}.T?interval=1d&range=5d`;
+        const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.code}.T?interval=1d&range=5d`;
+        // CORSプロキシを使用してブラウザからのアクセスを可能にする
+        // Note: 静的サイト(GitHub Pages)のためCORSプロキシが必要
+        // 本番環境ではサーバーサイドプロキシの使用を推奨
+        const url = `${CORS_PROXY_URL}${encodeURIComponent(yahooUrl)}`;
+        
+        // タイムアウト設定
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
         
         const response = await fetch(url, {
           cache: 'no-store', // キャッシュを無効化して常に最新データを取得
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-          },
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -137,6 +149,11 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
       } catch (error) {
         console.error(`${stock.name} のデータ取得エラー:`, error);
         return null;
+      } finally {
+        // タイムアウトのクリーンアップ（メモリリーク防止）
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
       }
     });
 
