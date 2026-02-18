@@ -33,7 +33,7 @@ export async function fetchEconomicNewsFromRSS(): Promise<NewsResponse> {
     const rssUrl = "https://www3.nhk.or.jp/rss/news/cat6.xml";
     
     const response = await fetch(rssUrl, {
-      cache: 'no-store', // キャッシュを無効化して常に最新データを取得
+      next: { revalidate: 3600 }, // 1時間キャッシュ
       headers: {
         'User-Agent': 'Mozilla/5.0',
       },
