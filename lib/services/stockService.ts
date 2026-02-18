@@ -54,11 +54,20 @@ export async function fetchAttentionStocksFromYahoo(): Promise<StocksResponse> {
         // Yahoo Finance Japan の株価APIエンドポイント
         const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.code}.T?interval=1d&range=5d`;
         // CORSプロキシを使用してブラウザからのアクセスを可能にする
+        // Note: 静的サイト(GitHub Pages)のためCORSプロキシが必要
+        // 本番環境ではサーバーサイドプロキシの使用を推奨
         const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
+        
+        // タイムアウト設定（10秒）
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         
         const response = await fetch(url, {
           cache: 'no-store', // キャッシュを無効化して常に最新データを取得
+          signal: controller.signal,
         });
+        
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           console.warn(`${stock.name} (${stock.code}) のデータ取得に失敗`);
